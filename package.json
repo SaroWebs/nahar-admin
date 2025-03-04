@@ -1,0 +1,38 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@headlessui/react": "^2.0.0",
+        "@inertiajs/react": "^2.0.0",
+        "@tailwindcss/forms": "^0.5.3",
+        "@tailwindcss/vite": "^4.0.0",
+        "@vitejs/plugin-react": "^4.2.0",
+        "autoprefixer": "^10.4.12",
+        "axios": "^1.7.4",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.4.31",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "tailwindcss": "^3.2.1",
+        "vite": "^6.0.11"
+    },
+    "dependencies": {
+        "@mantine/core": "^7.17.1",
+        "@mantine/dates": "^7.17.1",
+        "@mantine/form": "^7.17.1",
+        "@mantine/hooks": "^7.17.1",
+        "@mantine/modals": "^7.17.1",
+        "@mantine/tiptap": "^7.17.1",
+        "@tiptap/extension-link": "^2.11.5",
+        "@tiptap/pm": "^2.11.5",
+        "@tiptap/react": "^2.11.5",
+        "@tiptap/starter-kit": "^2.11.5",
+        "dayjs": "^1.11.13",
+        "lucide-react": "^0.477.0"
+    }
+}
