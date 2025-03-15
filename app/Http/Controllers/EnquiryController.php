@@ -8,9 +8,13 @@ use Illuminate\Support\Facades\Validator;
 
 class EnquiryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Enquiry::all());
+        $perPage = $request->query('show', 10);
+        $orderBy = $request->query('orderBy', 'created_at');
+        $order = $request->query('order', 'desc');
+
+        return response()->json(Enquiry::orderBy($orderBy, $order)->paginate($perPage));
     }
 
     public function store(Request $request)

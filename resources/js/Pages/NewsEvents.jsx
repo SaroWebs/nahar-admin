@@ -15,7 +15,7 @@ const NewsEvents = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState("");
-  const [pageInfo, setPageInfo] = useState({ page: 1, show: 10, orderBy: 'name', order: 'asc' });
+  const [pageInfo, setPageInfo] = useState({ page: 1, show: 10, orderBy: 'title', order: 'asc' });
   const [pagination, setPagination] = useState({ total: 0, lastPage: 1 });
 
   const loadData = () => {
@@ -243,7 +243,7 @@ const EditItem = ({ item, reload }) => {
     });
 
     axios
-      .put(`/data/posts/${item.id}`, formData)
+      .post(`/data/posts/${item.id}?_method=PUT`, formData)
       .then(() => {
         reload();
         close();

@@ -9,12 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ApplicantController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Applicant::all());
+        $perPage = $request->query('show', 10);
+        $orderBy = $request->query('orderBy', 'created_at');
+        $order = $request->query('order', 'desc');
+
+        return response()->json(Applicant::orderBy($orderBy, $order)->paginate($perPage));
     }
 
     /**
@@ -61,30 +66,8 @@ class ApplicantController extends Controller
      */
     public function update(Request $request, Applicant $applicant)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'nullable|email|unique:applicants,email,' . $applicant->id,
-            'phone' => 'nullable|string|max:20',
-            'applied_for' => 'nullable|string|max:255',
-            'experience' => 'nullable|integer|min:0',
-            'branch' => 'nullable|string|max:255',
-            'status' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $applicant->update($request->only(['name', 'email', 'phone', 'applied_for', 'experience', 'branch']));
-        
-        if ($request->hasFile('file')) {
-            Storage::disk('public')->delete($applicant->file_path);
-            $path = $request->file('file')->store('applicants', 'public');
-            $applicant->file_path = $path;
-        }
-
+        $applicant->update($request->all());
         $applicant->save();
-
         return response()->json($applicant);
     }
 
@@ -99,4 +82,5 @@ class ApplicantController extends Controller
         $applicant->delete();
         return response()->json(['message' => 'Applicant deleted successfully']);
     }
+
 }
