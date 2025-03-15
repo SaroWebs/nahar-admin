@@ -3,17 +3,22 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\CertificateBadgeController;
 
+Route::get('/link', function () {
+    Artisan::call('storage:link');
+    return "Storage link created successfully!";
+});
 
 Route::controller(PagesController::class)->group(function(){
     Route::get('/', 'home');
