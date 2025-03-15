@@ -30,38 +30,39 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|unique:posts,slug',
-            'type' => 'required|in:news,event,blog',
+            'title'       => 'required|string|max:255',
+            'slug'        => 'nullable|string|unique:posts,slug',
+            'type'        => 'required|in:news,event,blog',
             'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images'      => 'nullable|array', // Ensures images is an array
+            'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $post = new Post($request->only(['title', 'type', 'description']));
-        $post->slug = $request->slug ?? Str::slug($request->title);
-        // if (isset($request->start_date) && $request->start_date !== '' && $request->start_date !== null) {
-        //     $post->start_date = Carbon::parse($request->start_date);
-        // }
-        
-        // if (isset($request->end_date) && $request->end_date !== '' && $request->end_date !== null) {
-        //     $post->end_date = Carbon::parse($request->end_date);
-        // }
+        // Create the post with mass assignment
+        $post = Post::create([
+            'title'       => $request->title,
+            'type'        => $request->type,
+            'description' => $request->description,
+            'slug'        => $request->slug ?? Str::slug($request->title),
+        ]);
 
-        $post->save();
-
+        // Handle multiple image uploads
         if ($request->hasFile('images')) {
+            $images = [];
             foreach ($request->file('images') as $image) {
                 $path = $image->store('post_images', 'public');
-                PostImage::create(['post_id' => $post->id, 'image_path' => $path]);
+                $images[] = ['post_id' => $post->id, 'image_path' => $path];
             }
+            PostImage::insert($images); // Bulk insert for efficiency
         }
 
         return response()->json($post->load('images'), 201);
     }
+
 
     /**
      * Display the specified resource.
@@ -76,19 +77,29 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        $post->update($request->all());
-        $post->slug = $request->slug ?? Str::slug($request->title);
-        $post->save();
+        // Validate request data
+        $validator = Validator::make($request->all(), [
+            'title'       => 'required|string|max:255',
+            'type'        => 'required|in:news,event,blog',
+            'description' => 'nullable|string',
+        ]);
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('post_images', 'public');
-                PostImage::create(['post_id' => $post->id, 'image_path' => $path]);
-            }
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
+
+        // Update post details
+        $post->update([
+            'title'       => $request->title,
+            'type'        => $request->type,
+            'description' => $request->description,
+            'slug'        => $request->slug ?? Str::slug($request->title),
+        ]);
 
         return response()->json($post->load('images'));
     }
+
+
 
     /**
      * Remove the specified resource from storage.

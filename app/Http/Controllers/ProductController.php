@@ -30,6 +30,14 @@ class ProductController extends Controller
     
 
     /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
+    {
+        return response()->json($product->load('images'));
+    }
+
+        /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -47,31 +55,15 @@ class ProductController extends Controller
             'packaging_shelf_life' => 'nullable|string',
             'moq' => 'nullable|string',
             'badge_ids' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
-        $product = Product::create($request->except('images'));
-
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('product_images', 'public');
-                ProductImage::create([ 'product_id' => $product->id, 'image_path' => $path ]);
-            }
-        }
-
-        return response()->json($product->load('images'), 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        return response()->json($product->load('images'));
+    
+        $product = Product::create($request->all());
+    
+        return response()->json($product, 201);
     }
 
     /**
@@ -99,7 +91,8 @@ class ProductController extends Controller
         }
 
         $product->update($request->all());
-        return response()->json($product->load('images'));
+
+        return response()->json($product);
     }
 
     /**

@@ -130,7 +130,7 @@ const ViewItem = ({ item }) => {
 					{item.file_path && (
 						<div className="mt-6">
 							<p className="text-gray-600 font-medium">Resume:</p>
-							<a href={item.file_path} download className="text-blue-600 hover:underline">
+							<a href={'/storage/'+item.file_path} download className="text-blue-600 hover:underline">
 								Download Resume
 							</a>
 						</div>
@@ -174,7 +174,7 @@ const ChangeStatus = ({ item, reload }) => {
 
 const DownloadFile = ({ item }) => {
 	return (
-		<Button variant="light" color="green" component="a" href={item.file_path} download leftIcon={<DownloadIcon size={14} />}>
+		<Button variant="light" color="green" component="a" href={'/storage/'+item.file_path} download leftIcon={<DownloadIcon size={14} />}>
 			Download Resume
 		</Button>
 	);

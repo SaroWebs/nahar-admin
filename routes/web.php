@@ -9,8 +9,9 @@ use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\SubcategoryController;
+use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\CertificateBadgeController;
 
 
@@ -37,8 +38,13 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::apiResource('data/categories', CategoryController::class);
+
+    // products 
     Route::apiResource('data/products', ProductController::class);
-    Route::post('data/products/{product}/images', [ProductController::class, 'addImages']);
+    Route::post('data/products/{product}/images', [ProductImageController::class, 'store']);
+    Route::delete('data/product_images/{productImage}', [ProductImageController::class, 'destroy']);
+
+
     Route::apiResource('data/certificate-badges', CertificateBadgeController::class);
     Route::apiResource('data/posts', PostController::class);
     Route::post('data/posts/{post}/images', [PostController::class, 'addImages']);
