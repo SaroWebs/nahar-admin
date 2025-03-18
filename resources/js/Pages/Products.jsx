@@ -266,13 +266,13 @@ const EditProduct = ({ item, reload }) => {
 		setLoading(true);
 		const formData = new FormData();
 		formData.append("_method", "PUT");
-	
+
 		Object.keys(values).forEach((key) => {
 			if (values[key] !== undefined && values[key] !== null) {
 				formData.append(key, values[key]);
 			}
 		});
-	
+
 		axios
 			.post(`/data/products/${item.id}`, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
@@ -287,7 +287,7 @@ const EditProduct = ({ item, reload }) => {
 			})
 			.finally(() => setLoading(false));
 	};
-	
+
 
 	const g_info = useEditor({
 		extensions: [StarterKit],
@@ -416,12 +416,12 @@ const ProductImages = ({ item, reload }) => {
 	const handleSaveImages = async () => {
 		setLoading(true);
 		const formData = new FormData();
-	
+
 		// Append each image file separately
 		newImages.forEach((file) => {
 			formData.append("images[]", file); // Important: Ensure "images[]" is used correctly
 		});
-	
+
 		try {
 			await axios.post(`/data/products/${item.id}/images`, formData, {
 				headers: { "Content-Type": "multipart/form-data" },
@@ -435,11 +435,11 @@ const ProductImages = ({ item, reload }) => {
 			setLoading(false);
 		}
 	};
-	
+
 	const handleImageUpload = (files) => {
 		setNewImages((prevImages) => [...prevImages, ...files]);
 	};
-	
+
 	return (
 		<>
 			<Button onClick={open}>Manage Images</Button>

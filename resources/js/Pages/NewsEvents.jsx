@@ -1,10 +1,10 @@
 import MasterLayout from '@/Layouts/MasterLayout';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
-import { Modal, Button, TextInput, Select, FileInput, Group, Loader, Alert, Pagination, Stack, SimpleGrid, InputLabel } from '@mantine/core';
+import { Modal, Card, Button, TextInput, Select, Group, Loader, Alert, Pagination, Stack, SimpleGrid, InputLabel, Text } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { RichTextEditor } from "@mantine/tiptap";
 import { useEditor } from "@tiptap/react";
@@ -40,16 +40,12 @@ const NewsEvents = () => {
         <Stack>
           <div className="bg-white p-6 text-gray-900">
             <div className="flex justify-between mb-4">
-              <h1 className="text-xl font-semibold">Products</h1>
+              <h1 className="text-xl font-semibold">Posts</h1>
               <CreatePost reload={loadData} />
             </div>
             {loading ? (
               <div className="flex justify-center">
                 <Loader className="mx-auto" />
-              </div>
-            ) : !items ? (
-              <div className="flex justify-center">
-                <span>No Items</span>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -67,7 +63,9 @@ const NewsEvents = () => {
                       <tr key={item.id} className="hover:bg-gray-50 border-b">
                         <td className="p-3">{item.title}</td>
                         <td className="p-3">{item.type}</td>
-                        <td className="p-3 text-center">{item.images?.length > 0 ? <img src={'storage/' + item.images[0].image_path} className="h-16" alt="image" /> : '-'}</td>
+                        <td className="p-3 text-center">
+                          <PostImages item={item} reload={loadData} />
+                        </td>
                         <td className="p-3 flex gap-2 justify-end">
                           <EditItem item={item} reload={loadData} />
                           <RemoveItem item={item} reload={loadData} />
@@ -88,6 +86,7 @@ const NewsEvents = () => {
 
 export default NewsEvents;
 
+
 const CreatePost = ({ reload }) => {
   const [opened, { open, close }] = useDisclosure(false);
   const [loading, setLoading] = useState(false);
@@ -100,7 +99,6 @@ const CreatePost = ({ reload }) => {
       description: "",
       start_date: null,
       end_date: null,
-      images: [],
     },
     validate: {
       title: (value) => (value ? null : "Title is required"),
@@ -113,11 +111,7 @@ const CreatePost = ({ reload }) => {
     setLoading(true);
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
-      if (key === "images") {
-        values.images.forEach((file) => formData.append("images[]", file));
-      } else {
-        formData.append(key, values[key]);
-      }
+      formData.append(key, values[key]);
     });
 
     axios
@@ -190,15 +184,6 @@ const CreatePost = ({ reload }) => {
             </SimpleGrid>
           )}
 
-          <FileInput
-            label="Product Images"
-            placeholder="Upload product images"
-            multiple
-            accept="image/*"
-            mt="md"
-            {...form.getInputProps("images")}
-          />
-
           <Group position="right" mt="lg">
             <Button onClick={close} variant="outline">
               Cancel
@@ -224,7 +209,6 @@ const EditItem = ({ item, reload }) => {
       description: item.description,
       start_date: item.start_date ? new Date(item.start_date) : null,
       end_date: item.end_date ? new Date(item.end_date) : null,
-      images: [],
     },
     validate: {
       title: (value) => (value ? null : "Title is required"),
@@ -235,11 +219,7 @@ const EditItem = ({ item, reload }) => {
     setLoading(true);
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
-      if (key === "images") {
-        values.images.forEach((file) => formData.append("images[]", file));
-      } else {
-        formData.append(key, values[key]);
-      }
+      formData.append(key, values[key]);
     });
 
     axios
@@ -255,7 +235,7 @@ const EditItem = ({ item, reload }) => {
   return (
     <>
       <Button onClick={open}>Edit</Button>
-      <Modal opened={opened} onClose={close} title="Edit Product" size="70%">
+      <Modal opened={opened} onClose={close} title="Edit Post" size="70%">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <TextInput label="Title" required {...form.getInputProps("title")} />
           <Select
@@ -289,29 +269,17 @@ const EditItem = ({ item, reload }) => {
               <DatePickerInput
                 label="Start Date"
                 placeholder="Pick start date"
-                value={form.values.start_date ? new Date(form.values.start_date) : null}
-                onChange={(date) => form.setFieldValue("start_date", date || null)}
                 clearable
+                {...form.getInputProps("start_date")}
               />
-
               <DatePickerInput
                 label="End Date"
                 placeholder="Pick end date"
-                value={form.values.end_date ? new Date(form.values.end_date) : null}
-                onChange={(date) => form.setFieldValue("end_date", date || null)}
                 clearable
+                {...form.getInputProps("end_date")}
               />
             </SimpleGrid>
           )}
-
-          <FileInput
-            label="Product Images"
-            placeholder="Upload product images"
-            multiple
-            accept="image/*"
-            mt="md"
-            {...form.getInputProps("images")}
-          />
 
           <Group position="right" mt="lg">
             <Button onClick={close} variant="outline">
@@ -351,3 +319,122 @@ const RemoveItem = ({ item, reload }) => {
 };
 
 
+const PostImages = ({ item, reload }) => {
+  const [opened, { open, close }] = useDisclosure(false);
+  const [newImages, setNewImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleRemoveImage = async (imageId) => {
+    try {
+      await axios.delete(`/data/post_images/${imageId}`);
+      alert("Image deleted successfully!");
+      reload();
+      close();
+    } catch (error) {
+      console.error("Error deleting image:", error.response?.data || error.message);
+      alert("Failed to delete the image.");
+    }
+  };
+
+  const handleSaveImages = async () => {
+    setLoading(true);
+    const formData = new FormData();
+
+    newImages.forEach((file) => {
+      formData.append("images[]", file);
+    });
+
+    try {
+      await axios.post(`/data/posts/${item.id}/images`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      reload();
+      close();
+    } catch (error) {
+      console.error("Image upload error:", error.response?.data || error.message);
+      setError("An error occurred while uploading images.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageUpload = (event) => {
+    console.log("event");
+    console.log(event);
+    const files = Array.from(event.target.files);
+    console.log("files");
+    console.log(files);
+    setNewImages((prevImages) => [...prevImages, ...files]);
+  };
+
+  return (
+    <>
+      <div onClick={open} className="flex flex-wrap gap-2 justify-center cursor-pointer">
+        {item.images?.length > 0 ? (
+          item.images.map((image, index) => (
+            <img key={index} src={`/storage/${image.image_path}`} className="h-16 w-16 object-cover border rounded" alt={`Post ${item.id}`} />
+          ))
+        ) : (
+          <span className="text-gray-500">No Images</span>
+        )}
+      </div>
+      <Modal opened={opened} onClose={close} title="Manage Post Images" size="70%">
+        {error && (
+          <Alert title="Error" color="red" withCloseButton onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+        <Stack>
+          {/* Styled Div as File Input Trigger */}
+          <div
+            className="border-dashed border-2 border-gray-400 rounded-lg p-5 text-center cursor-pointer"
+            onClick={() => fileInputRef.current.click()}
+          >
+            <p className="text-gray-600">Add Images</p>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            multiple
+            accept="image/*"
+            onChange={handleImageUpload}
+          />
+          {/* Image Preview */}
+          <SimpleGrid cols={3}>
+            {newImages.map((file, index) => (
+              <Card key={index} shadow="sm" p="lg">
+                <Card.Section>
+                  <img src={URL.createObjectURL(file)} alt={`Preview ${index + 1}`} />
+                </Card.Section>
+                <Group position="apart" mt="md">
+                  <Text weight={500}>Preview {index + 1}</Text>
+                </Group>
+              </Card>
+            ))}
+          </SimpleGrid>
+          {/* Existing Images */}
+          <SimpleGrid cols={3}>
+            {item.images?.map((image, index) => (
+              <Card key={index} shadow="sm" p="lg">
+                <Card.Section>
+                  <img src={`storage/${image.image_path}`} alt={`Post Image ${index + 1}`} />
+                </Card.Section>
+                <Group position="apart" mt="md">
+                  <Text weight={500}>Image {index + 1}</Text>
+                  <Button color="red" onClick={() => handleRemoveImage(image.id)}>Remove</Button>
+                </Group>
+              </Card>
+            ))}
+          </SimpleGrid>
+          <Group position="right">
+            <Button onClick={close} variant="outline">Cancel</Button>
+            <Button onClick={handleSaveImages} loading={loading}>Save</Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </>
+  );
+};

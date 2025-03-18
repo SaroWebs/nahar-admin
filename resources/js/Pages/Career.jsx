@@ -93,7 +93,7 @@ const ViewItem = ({ item }) => {
 
 	return (
 		<>
-			<Button variant="light" color="blue" onClick={open} leftIcon={<EyeIcon size={14} />}>
+			<Button variant="light" color="blue" onClick={open}>
 				View Application
 			</Button>
 			<Modal opened={opened} onClose={close} size="70%">
@@ -174,7 +174,7 @@ const ChangeStatus = ({ item, reload }) => {
 
 const DownloadFile = ({ item }) => {
 	return (
-		<Button variant="light" color="green" component="a" href={'/storage/'+item.file_path} download leftIcon={<DownloadIcon size={14} />}>
+		<Button variant="light" color="green" component="a" href={'/storage/'+item.file_path} download>
 			Download Resume
 		</Button>
 	);

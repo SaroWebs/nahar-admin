@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\CertificateBadgeController;
@@ -49,10 +50,10 @@ Route::middleware('auth')->group(function () {
     Route::post('data/products/{product}/images', [ProductImageController::class, 'store']);
     Route::delete('data/product_images/{productImage}', [ProductImageController::class, 'destroy']);
 
-
     Route::apiResource('data/certificate-badges', CertificateBadgeController::class);
     Route::apiResource('data/posts', PostController::class);
-    Route::post('data/posts/{post}/images', [PostController::class, 'addImages']);
+    Route::post('data/posts/{post}/images', [PostImageController::class, 'store']);
+    Route::delete('data/post_images/{postImage}', [PostImageController::class, 'destroy']);
     Route::apiResource('data/applicants', ApplicantController::class);
     Route::apiResource('data/enquiries', EnquiryController::class);
 });

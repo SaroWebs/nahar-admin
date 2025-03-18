@@ -34,8 +34,6 @@ class PostController extends Controller
             'slug'        => 'nullable|string|unique:posts,slug',
             'type'        => 'required|in:news,event,blog',
             'description' => 'nullable|string',
-            'images'      => 'nullable|array', // Ensures images is an array
-            'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -49,16 +47,6 @@ class PostController extends Controller
             'description' => $request->description,
             'slug'        => $request->slug ?? Str::slug($request->title),
         ]);
-
-        // Handle multiple image uploads
-        if ($request->hasFile('images')) {
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('post_images', 'public');
-                $images[] = ['post_id' => $post->id, 'image_path' => $path];
-            }
-            PostImage::insert($images); // Bulk insert for efficiency
-        }
 
         return response()->json($post->load('images'), 201);
     }
