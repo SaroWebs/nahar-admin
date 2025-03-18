@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('category_id')->constraint('categories')->cascadeOnDelete();
             $table->enum('variant',['whole','powder','flakes','slice','na'])->default('na');
+            $table->string('botanical_name')->nullable();
             $table->string('trade_name')->nullable();
-            $table->string('other_names')->nullable();
+            $table->json('other_names')->nullable();
             $table->text('general_info')->nullable();
             $table->text('origin_sourcing')->nullable();
             $table->text('quality_certifications')->nullable();

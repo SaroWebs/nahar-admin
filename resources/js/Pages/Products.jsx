@@ -40,7 +40,10 @@ const Products = () => {
 					<div className="bg-white p-6 text-gray-900">
 						<div className="flex justify-between mb-4">
 							<h1 className="text-xl font-semibold">Products</h1>
+							<div className="">
+							<ImportProducts reload={loadData}/>
 							<CreateProduct reload={loadData} />
+							</div>
 						</div>
 						{loading ? (
 							<div className="flex justify-center">
@@ -98,27 +101,6 @@ const CreateProduct = ({ reload }) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 
-	const form = useForm({
-		initialValues: {
-			name: "",
-			category_id: "",
-			variant: "na",
-			trade_name: "",
-			other_names: "",
-			general_info: "",
-			origin_sourcing: "",
-			quality_certifications: "",
-			characteristics: "",
-			packaging_shelf_life: "",
-			moq: "",
-			badge_ids: [],
-		},
-		validate: {
-			name: (value) => (value ? null : "Name is required"),
-			category_id: (value) => (value ? null : "Category is required"),
-		},
-	});
-
 	useEffect(() => {
 		axios
 			.get("/data/categories?show=all")
@@ -126,11 +108,36 @@ const CreateProduct = ({ reload }) => {
 			.catch(() => setError("Failed to load categories"));
 	}, []);
 
+	const form = useForm({
+		initialValues: {
+			name: "",
+			category_id: "",
+			variant: "na",
+			trade_name: "",
+			other_names: [],
+			botanical_name: "",
+			general_info: "",
+			origin_sourcing: "",
+			quality_certifications: "",
+			characteristics: "",
+			packaging_shelf_life: "",
+			moq: "",
+		},
+		validate: {
+			name: (value) => (value ? null : "Name is required"),
+			category_id: (value) => (value ? null : "Category is required"),
+		},
+	});
+
 	const handleSubmit = (values) => {
 		setLoading(true);
 		const formData = new FormData();
 		Object.keys(values).forEach((key) => {
-			formData.append(key, values[key]);
+			if (key === "other_names") {
+				formData.append(key, JSON.stringify(values[key]));
+			} else {
+				formData.append(key, values[key]);
+			}
 		});
 
 		axios
@@ -151,6 +158,11 @@ const CreateProduct = ({ reload }) => {
 			form.setFieldValue('general_info', editor.getHTML());
 		},
 	});
+
+	const handleOtherNamesChange = (e) => {
+		const value = e.target.value.split(",").map((name) => name.trim());
+		form.setFieldValue("other_names", value);
+	};
 
 	return (
 		<>
@@ -185,9 +197,12 @@ const CreateProduct = ({ reload }) => {
 							{...form.getInputProps("variant")}
 						/>
 						<TextInput label="Trade Name" {...form.getInputProps("trade_name")} />
-						<TextInput label="Other Names" {...form.getInputProps("other_names")} />
+						<TextInput label="Botanical Name" {...form.getInputProps("botanical_name")} />
 					</SimpleGrid>
 
+					<div>
+						<TextInput label="Other Names" onChange={handleOtherNamesChange} />
+					</div>
 					<div>
 						<InputLabel size="sm" weight={500} mt={5}>
 							General Information
@@ -207,11 +222,7 @@ const CreateProduct = ({ reload }) => {
 
 					<SimpleGrid cols={2} spacing="md" mt="md">
 						<TextInput label="Minimum Order Quantity (MOQ)" {...form.getInputProps("moq")} />
-						<MultiSelect
-							label="Badges"
-							data={[]}
-							{...form.getInputProps("badge_ids")}
-						/>
+						
 					</SimpleGrid>
 
 					<Group position="right" mt="lg">
@@ -240,14 +251,14 @@ const EditProduct = ({ item, reload }) => {
 			category_id: String(item.category_id) || "",
 			variant: item.variant || "na",
 			trade_name: item.trade_name || "",
-			other_names: item.other_names || "",
+			other_names: item.other_names ? item.other_names.join(", ") : "", // Convert array to comma-separated string
+			botanical_name: item.botanical_name || "", // Ensure botanical_name is included
 			general_info: item.general_info || "",
 			origin_sourcing: item.origin_sourcing || "",
 			quality_certifications: item.quality_certifications || "",
 			characteristics: item.characteristics || "",
 			packaging_shelf_life: item.packaging_shelf_life || "",
 			moq: item.moq || "",
-			badge_ids: item.badge_ids || [],
 		},
 		validate: {
 			name: (value) => (value ? null : "Name is required"),
@@ -267,9 +278,19 @@ const EditProduct = ({ item, reload }) => {
 		const formData = new FormData();
 		formData.append("_method", "PUT");
 
+		// Convert other_names back to an array before appending to FormData
+		const otherNamesArray = values.other_names
+			.split(",")
+			.map((name) => name.trim())
+			.filter((name) => name !== "");
+
 		Object.keys(values).forEach((key) => {
 			if (values[key] !== undefined && values[key] !== null) {
-				formData.append(key, values[key]);
+				if (key === "other_names") {
+					formData.append(key, JSON.stringify(otherNamesArray)); // Append as JSON array
+				} else {
+					formData.append(key, values[key]);
+				}
 			}
 		});
 
@@ -287,7 +308,6 @@ const EditProduct = ({ item, reload }) => {
 			})
 			.finally(() => setLoading(false));
 	};
-
 
 	const g_info = useEditor({
 		extensions: [StarterKit],
@@ -330,7 +350,12 @@ const EditProduct = ({ item, reload }) => {
 							{...form.getInputProps("variant")}
 						/>
 						<TextInput label="Trade Name" {...form.getInputProps("trade_name")} />
-						<TextInput label="Other Names" {...form.getInputProps("other_names")} />
+						<TextInput label="Botanical Name" {...form.getInputProps("botanical_name")} /> {/* Add botanical_name field */}
+						<TextInput
+							label="Other Names"
+							value={form.values.other_names}
+							onChange={(e) => form.setFieldValue("other_names", e.target.value)} // Handle other_names as comma-separated string
+						/>
 					</SimpleGrid>
 
 					<div>
@@ -352,11 +377,6 @@ const EditProduct = ({ item, reload }) => {
 
 					<SimpleGrid cols={2} spacing="md" mt="md">
 						<TextInput label="Minimum Order Quantity (MOQ)" {...form.getInputProps("moq")} />
-						<MultiSelect
-							label="Badges"
-							data={[]} // Populate with available badges
-							{...form.getInputProps("badge_ids")}
-						/>
 					</SimpleGrid>
 
 					<Group position="right" mt="lg">
@@ -473,6 +493,19 @@ const ProductImages = ({ item, reload }) => {
 						<Button onClick={handleSaveImages} loading={loading}>Save</Button>
 					</Group>
 				</Stack>
+			</Modal>
+		</>
+	);
+};
+
+const ImportProducts = ({ reload }) => {
+	const [opened, { open, close }] = useDisclosure(false);
+	
+	return (
+		<>
+			<Button onClick={open}>Import Products</Button>
+			<Modal opened={opened} onClose={close} title="Create Product" size="70%">
+				<div>import will be added here</div>
 			</Modal>
 		</>
 	);
